@@ -1,9 +1,10 @@
 import { SearchX } from "lucide-react";
 
 interface EmptyStateProps {
-  title?: string;
-  description?: string;
+  title?: string | undefined;
+  description?: string | undefined;
 }
+
 
 export function EmptyState({
   title = "No applications found.",
