@@ -1,14 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  Info,
-  LayoutDashboard,
-  LayoutGrid,
-  History,
-  Settings,
-  Star,
-  Tags,
-} from "lucide-react";
+import { Info, LayoutDashboard, LayoutGrid, History, Settings, Star, Tags } from "lucide-react";
 
+import { MaharasaLogo } from "@/components/MaharasaLogo";
 import {
   Sidebar,
   SidebarContent,
@@ -57,9 +50,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="px-3 py-4">
         <Link to="/" className="flex items-center gap-2.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
-            M
-          </span>
+          <MaharasaLogo />
           <span className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold leading-tight">Maharasa Portal</span>
             <span className="text-[11px] text-muted-foreground">One Portal. Every App.</span>

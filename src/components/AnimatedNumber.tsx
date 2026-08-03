@@ -5,7 +5,10 @@ export function AnimatedNumber({ value, duration = 900 }: { value: number; durat
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setDisplay(value);
       return;
     }

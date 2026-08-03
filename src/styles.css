@@ -35,10 +35,13 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-strong: var(--destructive-strong);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-success-strong: var(--success-strong);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-strong: var(--warning-strong);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -85,7 +88,7 @@
   --secondary-foreground: oklch(0.28 0.03 250);
 
   --muted: oklch(0.966 0.006 247);
-  --muted-foreground: oklch(0.55 0.025 252);
+  --muted-foreground: oklch(0.53 0.025 252);
 
   --accent: oklch(0.6 0.155 152);
   --accent-foreground: oklch(0.99 0.01 150);
@@ -94,6 +97,18 @@
   --destructive-foreground: oklch(0.985 0.01 27);
   --success: oklch(0.6 0.155 152);
   --success-foreground: oklch(0.99 0.01 150);
+
+  /*
+   * `--success` / `--destructive` are fill colors: at 11px on a 10% tint they
+   * only reach ~3.3:1 and ~4.1:1 in light mode. These darker variants are the
+   * text colors, and clear 4.5:1. In dark mode the fills already pass, so the
+   * strong variants match them there.
+   */
+  --success-strong: oklch(0.5 0.13 152);
+  --destructive-strong: oklch(0.52 0.2 27);
+  /* The gold `--warning` fill is only 1.96:1 on a white card — too faint for
+     the pinned-star icon, which needs 3:1 as a meaningful graphic. */
+  --warning-strong: oklch(0.62 0.15 82);
   --warning: oklch(0.79 0.15 82);
   --warning-foreground: oklch(0.28 0.06 82);
 
@@ -145,6 +160,9 @@
   --destructive-foreground: oklch(0.16 0.03 25);
   --success: oklch(0.68 0.16 152);
   --success-foreground: oklch(0.17 0.04 150);
+  --success-strong: oklch(0.68 0.16 152);
+  --destructive-strong: oklch(0.68 0.19 25);
+  --warning-strong: oklch(0.82 0.14 84);
   --warning: oklch(0.82 0.14 84);
   --warning-foreground: oklch(0.22 0.05 84);
 

@@ -19,10 +19,15 @@ bun run build      # production build (nitro, cloudflare target)
 bun run preview    # serve the build
 bun run lint       # eslint
 bun run format     # prettier --write .
+bun run test       # vitest run
+bun run test:watch # vitest
 ```
 
-There is no test runner configured. Verify changes with `bun run lint` plus a
-build, and by exercising the page in `dev`.
+Tests are Vitest + Testing Library, configured in
+[vitest.config.ts](vitest.config.ts) (deliberately separate from
+`vite.config.ts` — unit tests need the `@` alias, not the Start preset). Specs
+live next to their subject as `*.test.ts(x)`. Verify changes with
+`bun run test`, `bun run lint` and a build, and by exercising the page in `dev`.
 
 ## Stack
 
@@ -42,7 +47,7 @@ already wires TanStack Start, React, Tailwind, tsconfig paths, nitro, and the
 | [src/layouts/](src/layouts/) | `PortalLayout`, `TopNav`, `AppSidebar`, `portal-context.ts`. |
 | [src/components/](src/components/) | Portal-specific presentational components. |
 | [src/components/ui/](src/components/ui/) | shadcn/ui primitives. Treat as vendored — regenerate rather than hand-tune. |
-| [src/hooks/](src/hooks/) | `usePortalApplications`, `useFavorites`, `useRecentApps`, `useTheme`, `useLocalStorage`. |
+| [src/hooks/](src/hooks/) | `PreferencesProvider` (owns all client preferences), `usePortalApplications`, `useCategories`, `useNotifications`, `useFavorites`, `useRecentApps`, `useTheme`, `useLocalStorage`. |
 | [src/services/applicationService.ts](src/services/applicationService.ts) | The only data-access boundary. |
 | [src/data/applications.ts](src/data/applications.ts) | Seed application list. |
 | [src/types/application.ts](src/types/application.ts) | Domain types (`Application`, `AppCategory`, `AppStatus`, …). |
@@ -68,13 +73,25 @@ though Phase 1 is synchronous, precisely so Phase 2 can swap the bodies for
 accent, `#F8FAFC` background, 16px radius, soft shadows, subtle animation.
 Every change must look right in both light and dark mode.
 
+`--success`, `--destructive` and `--warning` are *fill* colors — at small sizes
+on a tinted chip they fall under 4.5:1 in light mode. For text and for
+meaningful icons use `--success-strong`, `--destructive-strong`,
+`--warning-strong`, which are darkened in light mode and identical to the base
+token in dark mode.
+
 **Launch apps via `launchApplication`.** Do not call `window.open` directly —
 Phase 2 resolves SSO redirects inside that function.
 
-**localStorage is SSR-hazardous.** Always go through `useLocalStorage`, which
-reads after hydration and returns a `hydrated` flag. Keys in use:
-`maharasa.theme`, `maharasa.favorites`, `maharasa.recent` (max 10 entries).
-Rendering different markup before `hydrated` is true causes hydration mismatch.
+**localStorage is SSR-hazardous, and it is global.** Every client preference is
+owned by a single [PreferencesProvider](src/hooks/PreferencesProvider.tsx)
+mounted in `PortalLayout`; `useTheme`, `useFavorites` and `useRecentApps` are
+thin readers of that context. Never call `useLocalStorage` from a component —
+two copies of the same key drift apart and the UI desyncs. `useLocalStorage`
+reads after hydration, follows the `storage` event across tabs, and returns
+`hydrated` plus `hasStoredValue`. Keys in use: `maharasa.theme`,
+`maharasa.favorites`, `maharasa.recent` (max 10 entries),
+`maharasa.notifications.read`. Rendering different markup before `hydrated` is
+true causes hydration mismatch.
 
 **Routing is TanStack, not Next.js.** No `src/pages/`, no `app/layout.tsx`.
 Dynamic segments are `$id`, splats are `$.tsx` read via `_splat`.

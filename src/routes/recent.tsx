@@ -14,7 +14,10 @@ export const Route = createFileRoute("/recent")({
         content: "The last ten Maharasa applications you opened, ready to relaunch.",
       },
       { property: "og:title", content: "Recently Used — Maharasa Portal" },
-      { property: "og:description", content: "Your ten most recently opened Maharasa applications." },
+      {
+        property: "og:description",
+        content: "Your ten most recently opened Maharasa applications.",
+      },
     ],
   }),
   component: RecentPage,

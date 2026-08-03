@@ -1,29 +1,10 @@
-import { useCallback } from "react";
-import { useLocalStorage } from "./useLocalStorage";
+import { usePreferences } from "./preferences-context";
 
-const KEY = "maharasa.recent";
-const MAX_RECENT = 10;
+export type { RecentEntry } from "./preferences-context";
 
-export interface RecentEntry {
-  id: string;
-  openedAt: string;
-}
-
+/** Launch history, newest first, capped at 10. State is owned by `PreferencesProvider`. */
 export function useRecentApps() {
-  const [recent, setRecent, hydrated] = useLocalStorage<RecentEntry[]>(KEY, []);
+  const { recent, trackOpen, clearRecent, recentHydrated } = usePreferences();
 
-  const trackOpen = useCallback(
-    (id: string) =>
-      setRecent((prev) =>
-        [{ id, openedAt: new Date().toISOString() }, ...prev.filter((e) => e.id !== id)].slice(
-          0,
-          MAX_RECENT,
-        ),
-      ),
-    [setRecent],
-  );
-
-  const clearRecent = useCallback(() => setRecent([]), [setRecent]);
-
-  return { recent, trackOpen, clearRecent, hydrated };
+  return { recent, trackOpen, clearRecent, hydrated: recentHydrated };
 }

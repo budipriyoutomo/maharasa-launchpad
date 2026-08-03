@@ -13,7 +13,7 @@ import { useRecentApps } from "./useRecentApps";
  */
 export function usePortalApplications() {
   const { data, isLoading } = useQuery(applicationsQueryOptions);
-  const { favorites, isFavorite, toggleFavorite } = useFavorites();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const { recent, trackOpen, clearRecent } = useRecentApps();
 
   const applications = useMemo<Application[]>(() => {
@@ -22,11 +22,13 @@ export function usePortalApplications() {
     return source
       .map((app) => ({
         ...app,
-        favorite: isFavorite(app.id) || (favorites.length === 0 && app.favorite),
+        // `PreferencesProvider` seeds the stored list from `app.favorite` on a
+        // device's first visit, so the stored list is the only source here.
+        favorite: isFavorite(app.id),
         lastOpened: recentMap.get(app.id) ?? null,
       }))
       .sort((a, b) => Number(b.favorite) - Number(a.favorite));
-  }, [data, favorites, isFavorite, recent]);
+  }, [data, isFavorite, recent]);
 
   const recentApplications = useMemo(
     () =>

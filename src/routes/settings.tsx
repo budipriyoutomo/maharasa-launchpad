@@ -46,7 +46,7 @@ function SettingsRow({
 function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const { clearRecent } = useRecentApps();
-  const { favorites, toggleFavorite } = useFavorites();
+  const { favorites, clearFavorites } = useFavorites();
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -92,7 +92,7 @@ function SettingsPage() {
               variant="outline"
               className="rounded-xl"
               disabled={favorites.length === 0}
-              onClick={() => favorites.forEach((id) => toggleFavorite(id))}
+              onClick={clearFavorites}
             >
               Reset favorites
             </Button>

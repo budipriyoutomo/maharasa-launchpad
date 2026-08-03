@@ -5,7 +5,7 @@ const STATUS_MAP: Record<AppStatus, { label: string; dot: string; chip: string }
   online: {
     label: "Online",
     dot: "bg-success",
-    chip: "bg-success/10 text-success border-success/20",
+    chip: "bg-success/10 text-success-strong border-success/20",
   },
   maintenance: {
     label: "Maintenance",
@@ -15,7 +15,7 @@ const STATUS_MAP: Record<AppStatus, { label: string; dot: string; chip: string }
   offline: {
     label: "Offline",
     dot: "bg-destructive",
-    chip: "bg-destructive/10 text-destructive border-destructive/20",
+    chip: "bg-destructive/10 text-destructive-strong border-destructive/20",
   },
 };
 

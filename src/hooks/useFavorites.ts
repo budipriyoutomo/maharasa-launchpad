@@ -1,18 +1,9 @@
-import { useCallback } from "react";
-import { useLocalStorage } from "./useLocalStorage";
+import { usePreferences } from "./preferences-context";
 
-const KEY = "maharasa.favorites";
-
+/** Pinned applications. State is owned by `PreferencesProvider`. */
 export function useFavorites() {
-  const [favorites, setFavorites, hydrated] = useLocalStorage<string[]>(KEY, []);
+  const { favorites, isFavorite, toggleFavorite, clearFavorites, favoritesHydrated } =
+    usePreferences();
 
-  const isFavorite = useCallback((id: string) => favorites.includes(id), [favorites]);
-
-  const toggleFavorite = useCallback(
-    (id: string) =>
-      setFavorites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id])),
-    [setFavorites],
-  );
-
-  return { favorites, isFavorite, toggleFavorite, hydrated };
+  return { favorites, isFavorite, toggleFavorite, clearFavorites, hydrated: favoritesHydrated };
 }

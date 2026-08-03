@@ -5,7 +5,6 @@ interface EmptyStateProps {
   description?: string | undefined;
 }
 
-
 export function EmptyState({
   title = "No applications found.",
   description = "Try a different keyword or clear the active filters.",

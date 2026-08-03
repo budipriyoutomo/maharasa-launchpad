@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, Command, LogOut, Moon, Search, Settings, Sun, User } from "lucide-react";
+import { Command, LogOut, Moon, Search, Settings, Sun, User } from "lucide-react";
 
+import { MaharasaLogo } from "@/components/MaharasaLogo";
+import { NotificationMenu } from "@/components/NotificationMenu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +27,17 @@ export function TopNav({ onOpenSearch }: TopNavProps) {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
       <SidebarTrigger className="shrink-0" />
 
+      {/* Branding also lives in the sidebar, but that collapses to icons and
+          becomes a sheet on mobile — the header is the one constant. */}
+      <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Maharasa Portal home">
+        <MaharasaLogo className="size-8" />
+        <span className="hidden text-sm font-semibold tracking-tight md:inline">
+          Maharasa Portal
+        </span>
+      </Link>
+
+      <span aria-hidden className="hidden h-6 w-px shrink-0 bg-border sm:block" />
+
       <button
         type="button"
         onClick={onOpenSearch}
@@ -48,21 +61,7 @@ export function TopNav({ onOpenSearch }: TopNavProps) {
           <Command className="size-4" />
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative rounded-xl" aria-label="Notifications">
-              <Bell className="size-4" />
-              <span className="absolute right-2 top-2 size-1.5 rounded-full bg-accent" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-72 rounded-xl">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-              You&apos;re all caught up.
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <NotificationMenu />
 
         <Button
           variant="ghost"

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { ApplicationGrid } from "@/components/ApplicationGrid";
 import { PageHeader } from "@/components/PageHeader";
-import { CATEGORIES } from "@/data/applications";
+import { useCategories } from "@/hooks/useCategories";
 import { usePortalApplications } from "@/hooks/usePortalApplications";
 
 export const Route = createFileRoute("/categories")({
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/categories")({
 
 function CategoriesPage() {
   const { applications, isLoading, open, toggleFavorite } = usePortalApplications();
+  const { categories } = useCategories();
 
   return (
     <div className="space-y-8">
@@ -33,7 +34,7 @@ function CategoriesPage() {
         title="Categories"
         description="Applications grouped by the department that owns them."
       />
-      {CATEGORIES.map((category) => {
+      {categories.map((category) => {
         const apps = applications.filter((app) => app.category === category);
         if (!isLoading && apps.length === 0) return null;
         return (

@@ -28,6 +28,7 @@ const STACK = [
   "React 19",
   "TypeScript",
   "Vite",
+  "TanStack Start",
   "TanStack Router",
   "TanStack Query",
   "TailwindCSS",

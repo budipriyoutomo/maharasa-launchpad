@@ -1,5 +1,5 @@
-import { APPLICATIONS } from "@/data/applications";
-import type { Application, ApplicationQuery } from "@/types/application";
+import { APPLICATIONS, CATEGORIES } from "@/data/applications";
+import type { AppCategory, Application, ApplicationQuery } from "@/types/application";
 
 /**
  * Data-access boundary for applications.
@@ -12,6 +12,31 @@ export interface IApplicationService {
   getAll(): Promise<Application[]>;
   getById(id: string): Promise<Application | undefined>;
   query(query: ApplicationQuery): Promise<Application[]>;
+  /** Canonical display order for category filters and groupings. */
+  getCategories(): Promise<AppCategory[]>;
+}
+
+/**
+ * Duplicate ids silently break favorites, recent history and React keys, and
+ * the symptom shows up far from the cause. Checked here rather than in the data
+ * file so a Phase 2 API payload gets the same guard.
+ */
+function assertUniqueIds(applications: Application[]): Application[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const app of applications) {
+    if (seen.has(app.id)) duplicates.add(app.id);
+    seen.add(app.id);
+  }
+
+  if (duplicates.size > 0) {
+    const message = `Duplicate application id(s): ${[...duplicates].join(", ")}`;
+    if (import.meta.env.DEV) throw new Error(message);
+    console.error(message);
+  }
+
+  return applications;
 }
 
 function matches(app: Application, query: ApplicationQuery): boolean {
@@ -34,7 +59,7 @@ class LocalApplicationService implements IApplicationService {
   }
 
   getAll(): Promise<Application[]> {
-    return this.delay([...APPLICATIONS]);
+    return this.delay(assertUniqueIds([...APPLICATIONS]));
   }
 
   getById(id: string): Promise<Application | undefined> {
@@ -44,6 +69,10 @@ class LocalApplicationService implements IApplicationService {
   query(query: ApplicationQuery): Promise<Application[]> {
     return this.delay(APPLICATIONS.filter((app) => matches(app, query)));
   }
+
+  getCategories(): Promise<AppCategory[]> {
+    return this.delay([...CATEGORIES]);
+  }
 }
 
 export const ApplicationService: IApplicationService = new LocalApplicationService();
@@ -51,5 +80,11 @@ export const ApplicationService: IApplicationService = new LocalApplicationServi
 export const applicationsQueryOptions = {
   queryKey: ["applications"] as const,
   queryFn: () => ApplicationService.getAll(),
+  staleTime: 5 * 60 * 1000,
+};
+
+export const categoriesQueryOptions = {
+  queryKey: ["application-categories"] as const,
+  queryFn: () => ApplicationService.getCategories(),
   staleTime: 5 * 60 * 1000,
 };

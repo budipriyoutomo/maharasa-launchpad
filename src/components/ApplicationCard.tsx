@@ -3,6 +3,7 @@ import { ExternalLink, Star } from "lucide-react";
 import { AppIcon } from "@/components/AppIcon";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { Application } from "@/types/application";
 import { formatRelative } from "@/utils/greeting";
@@ -20,6 +21,20 @@ export function ApplicationCard({
   onToggleFavorite,
   index = 0,
 }: ApplicationCardProps) {
+  const offline = app.status === "offline";
+
+  const openButton = (
+    <Button
+      size="sm"
+      onClick={offline ? undefined : () => onOpen(app)}
+      aria-disabled={offline}
+      className={cn("gap-1.5 rounded-lg", offline && "cursor-not-allowed opacity-60")}
+    >
+      Open
+      <ExternalLink className="size-3.5" />
+    </Button>
+  );
+
   return (
     <article
       className="card-lift group animate-fade-up relative flex flex-col rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]"
@@ -35,10 +50,13 @@ export function ApplicationCard({
         <button
           type="button"
           aria-label={app.favorite ? `Unpin ${app.name}` : `Pin ${app.name}`}
+          aria-pressed={app.favorite}
           onClick={() => onToggleFavorite(app.id)}
-          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-warning"
+          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-warning-strong"
         >
-          <Star className={cn("size-4", app.favorite && "fill-warning text-warning")} />
+          <Star
+            className={cn("size-4", app.favorite && "fill-warning-strong text-warning-strong")}
+          />
         </button>
       </div>
 
@@ -54,15 +72,17 @@ export function ApplicationCard({
 
       <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
         <span className="text-[11px] text-muted-foreground">{formatRelative(app.lastOpened)}</span>
-        <Button
-          size="sm"
-          onClick={() => onOpen(app)}
-          disabled={app.status === "offline"}
-          className="gap-1.5 rounded-lg"
-        >
-          Open
-          <ExternalLink className="size-3.5" />
-        </Button>
+        {offline ? (
+          <Tooltip>
+            {/* `aria-disabled` rather than `disabled`: a disabled button is not
+                focusable, which would put the explanation out of reach of
+                keyboard and screen-reader users. */}
+            <TooltipTrigger asChild>{openButton}</TooltipTrigger>
+            <TooltipContent>{app.name} is offline — launching is unavailable.</TooltipContent>
+          </Tooltip>
+        ) : (
+          openButton
+        )}
       </div>
     </article>
   );

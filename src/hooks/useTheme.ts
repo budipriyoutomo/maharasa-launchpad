@@ -1,20 +1,10 @@
-import { useCallback, useEffect } from "react";
-import { useLocalStorage } from "./useLocalStorage";
+import { usePreferences } from "./preferences-context";
 
-export type Theme = "light" | "dark";
+export type { Theme } from "./preferences-context";
 
+/** Light/dark preference. State is owned by `PreferencesProvider`. */
 export function useTheme() {
-  const [theme, setTheme, hydrated] = useLocalStorage<Theme>("maharasa.theme", "light");
+  const { theme, setTheme, toggleTheme, themeHydrated } = usePreferences();
 
-  useEffect(() => {
-    if (!hydrated) return;
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme, hydrated]);
-
-  const toggleTheme = useCallback(
-    () => setTheme((prev) => (prev === "dark" ? "light" : "dark")),
-    [setTheme],
-  );
-
-  return { theme, setTheme, toggleTheme, hydrated };
+  return { theme, setTheme, toggleTheme, hydrated: themeHydrated };
 }

@@ -13,7 +13,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { PortalLayout } from "@/layouts/PortalLayout";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -87,13 +86,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Maharasa Group" },
       { property: "og:title", content: "Maharasa Portal — One Portal. Every Application." },
-      { property: "og:description", content: "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more." },
+      {
+        property: "og:description",
+        content:
+          "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Maharasa Portal — One Portal. Every Application." },
-      { name: "twitter:description", content: "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/91a4782f-fa75-44a2-aaee-113b37a5eb81" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/91a4782f-fa75-44a2-aaee-113b37a5eb81" },
+      {
+        name: "twitter:description",
+        content:
+          "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/91a4782f-fa75-44a2-aaee-113b37a5eb81",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/91a4782f-fa75-44a2-aaee-113b37a5eb81",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -106,7 +121,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "alternate icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
 
@@ -140,6 +156,5 @@ function RootComponent() {
         <Outlet />
       </PortalLayout>
     </QueryClientProvider>
-
   );
 }
