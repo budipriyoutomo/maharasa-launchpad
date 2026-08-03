@@ -83,13 +83,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Maharasa Portal is the single entry point to every internal application at Maharasa Group.",
+          "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more.",
       },
       { name: "author", content: "Maharasa Group" },
-      { property: "og:title", content: "Maharasa Portal" },
-      { property: "og:description", content: "One Portal. Every Application." },
+      { property: "og:title", content: "Maharasa Portal — One Portal. Every Application." },
+      { property: "og:description", content: "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Maharasa Portal — One Portal. Every Application." },
+      { name: "twitter:description", content: "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more." },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

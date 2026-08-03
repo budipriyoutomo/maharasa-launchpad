@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Maharasa Portal — One Portal. Every Application." },
       {
         property: "og:description",
-        content: "Access all Maharasa Group internal applications from one enterprise portal.",
+        content: "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more.",
       },
     ],
   }),
