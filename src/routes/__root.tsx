@@ -92,6 +92,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Maharasa Portal — One Portal. Every Application." },
       { name: "twitter:description", content: "The single entry point to every Maharasa Group internal application: HRIS, IT Helpdesk, Finance, Production and more." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/91a4782f-fa75-44a2-aaee-113b37a5eb81" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/91a4782f-fa75-44a2-aaee-113b37a5eb81" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
