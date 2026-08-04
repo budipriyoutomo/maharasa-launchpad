@@ -11,30 +11,6 @@ const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).
 export function seedNotifications(): PortalNotification[] {
   return [
     {
-      id: "n-qms-maintenance",
-      title: "Quality Management under maintenance",
-      body: "QMS is offline for a scheduled database upgrade until 18:00 WIB.",
-      kind: "maintenance",
-      createdAt: minutesAgo(25),
-      applicationId: "qms",
-    },
-    {
-      id: "n-kds-incident",
-      title: "Kitchen Display unreachable",
-      body: "The outlet display service is down. IT is investigating.",
-      kind: "incident",
-      createdAt: minutesAgo(95),
-      applicationId: "kitchen-display",
-    },
-    {
-      id: "n-recruitment-maintenance",
-      title: "Recruitment paused for migration",
-      body: "Candidate data is being migrated. Read-only access resumes tomorrow.",
-      kind: "maintenance",
-      createdAt: minutesAgo(60 * 6),
-      applicationId: "recruitment",
-    },
-    {
       id: "n-portal-release",
       title: "Portal 1.0.0 released",
       body: "Favorites, recent history and command search are now available.",
