@@ -1,12 +1,22 @@
-import { APPLICATIONS, CATEGORIES } from "@/data/applications";
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+
 import type { AppCategory, Application, ApplicationQuery } from "@/types/application";
 
 /**
  * Data-access boundary for applications.
  *
- * Phase 1 resolves everything from local seed data. Phase 2 swaps the bodies of
- * these methods for `fetch()` calls against the portal API — the async
- * signatures already match, so no UI component needs to change.
+ * Phase 2: the catalogue is served by the portal's own server rather than
+ * bundled into the browser. Each method below is a TanStack Start server
+ * function — an RPC that runs on the Worker during SSR and over HTTP from the
+ * client. The seed data is loaded with a dynamic `import()` *inside* each
+ * handler, which is what keeps `@/data/applications` and every internal
+ * application URL out of the client bundle. Do not hoist that import to the
+ * top of this file.
+ *
+ * The async signatures are unchanged from Phase 1, so no component or hook
+ * needed to change. Swapping the seed data for a database is a change to
+ * `applicationCatalog.ts` only.
  */
 export interface IApplicationService {
   getAll(): Promise<Application[]>;
@@ -16,66 +26,87 @@ export interface IApplicationService {
   getCategories(): Promise<AppCategory[]>;
 }
 
+const categorySchema = z.enum([
+  "Human Resource",
+  "IT",
+  "Finance",
+  "Production",
+  "Warehouse",
+  "Operations",
+  "Sales",
+  "Management",
+  "Administration",
+]);
+
+const statusSchema = z.enum(["online", "maintenance", "offline"]);
+
 /**
- * Duplicate ids silently break favorites, recent history and React keys, and
- * the symptom shows up far from the cause. Checked here rather than in the data
- * file so a Phase 2 API payload gets the same guard.
+ * Server functions accept whatever the network hands them, so the query is
+ * validated at the boundary rather than trusted. Unknown keys are dropped.
  */
-function assertUniqueIds(applications: Application[]): Application[] {
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
+const applicationQuerySchema = z.object({
+  search: z.string().max(200).optional(),
+  category: categorySchema.nullish(),
+  status: statusSchema.nullish(),
+});
 
-  for (const app of applications) {
-    if (seen.has(app.id)) duplicates.add(app.id);
-    seen.add(app.id);
-  }
-
-  if (duplicates.size > 0) {
-    const message = `Duplicate application id(s): ${[...duplicates].join(", ")}`;
-    if (import.meta.env.DEV) throw new Error(message);
-    console.error(message);
-  }
-
-  return applications;
+/**
+ * The local catalogue answers instantly, which makes skeleton states flash and
+ * hides loading bugs during development. Production pays real latency instead.
+ */
+async function devLatency(ms: number): Promise<void> {
+  if (!import.meta.env.DEV) return;
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function matches(app: Application, query: ApplicationQuery): boolean {
-  const term = query.search?.trim().toLowerCase();
-  if (term) {
-    const haystack = `${app.name} ${app.description} ${app.category}`.toLowerCase();
-    if (!haystack.includes(term)) return false;
-  }
-  if (query.category && app.category !== query.category) return false;
-  if (query.status && app.status !== query.status) return false;
-  return true;
-}
+const fetchApplications = createServerFn({ method: "GET" }).handler(async () => {
+  const { selectAll } = await import("./applicationCatalog");
+  await devLatency(350);
+  return selectAll();
+});
 
-class LocalApplicationService implements IApplicationService {
-  /** Simulated latency keeps skeleton states honest in development. */
-  private readonly latency = 350;
+const fetchApplicationById = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().min(1).max(100) }))
+  .handler(async ({ data }) => {
+    const { selectById } = await import("./applicationCatalog");
+    await devLatency(350);
+    return selectById(data.id) ?? null;
+  });
 
-  private delay<T>(value: T): Promise<T> {
-    return new Promise((resolve) => setTimeout(() => resolve(value), this.latency));
-  }
+const fetchApplicationQuery = createServerFn({ method: "GET" })
+  .validator(applicationQuerySchema)
+  .handler(async ({ data }) => {
+    const { selectQuery } = await import("./applicationCatalog");
+    await devLatency(350);
+    return selectQuery(data);
+  });
 
+const fetchCategories = createServerFn({ method: "GET" }).handler(async () => {
+  const { selectCategories } = await import("./applicationCatalog");
+  await devLatency(350);
+  return selectCategories();
+});
+
+class RemoteApplicationService implements IApplicationService {
   getAll(): Promise<Application[]> {
-    return this.delay(assertUniqueIds([...APPLICATIONS]));
+    return fetchApplications();
   }
 
-  getById(id: string): Promise<Application | undefined> {
-    return this.delay(APPLICATIONS.find((app) => app.id === id));
+  /** `null` on the wire — `undefined` does not survive JSON — restored here. */
+  async getById(id: string): Promise<Application | undefined> {
+    return (await fetchApplicationById({ data: { id } })) ?? undefined;
   }
 
   query(query: ApplicationQuery): Promise<Application[]> {
-    return this.delay(APPLICATIONS.filter((app) => matches(app, query)));
+    return fetchApplicationQuery({ data: query });
   }
 
   getCategories(): Promise<AppCategory[]> {
-    return this.delay([...CATEGORIES]);
+    return fetchCategories();
   }
 }
 
-export const ApplicationService: IApplicationService = new LocalApplicationService();
+export const ApplicationService: IApplicationService = new RemoteApplicationService();
 
 export const applicationsQueryOptions = {
   queryKey: ["applications"] as const,

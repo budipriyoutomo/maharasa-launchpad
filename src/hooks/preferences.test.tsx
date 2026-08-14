@@ -1,7 +1,24 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
+
+/**
+ * `applicationService` is a server-function RPC boundary and needs the TanStack
+ * Start plugin to run, which the unit test config deliberately does not load.
+ * Stubbing it here also pins the favorite defaults, so editing the seed
+ * catalogue cannot break these tests.
+ */
+vi.mock("@/services/applicationService", () => ({
+  applicationsQueryOptions: {
+    queryKey: ["applications"] as const,
+    queryFn: async () => [
+      { id: "hris", favorite: true },
+      { id: "cmms", favorite: false },
+    ],
+    staleTime: 0,
+  },
+}));
 
 import { PreferencesProvider } from "./PreferencesProvider";
 import { useFavorites } from "./useFavorites";
