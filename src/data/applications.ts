@@ -1,20 +1,15 @@
-import type { AppCategory, Application } from "@/types/application";
-
-export const CATEGORIES: AppCategory[] = [
-  "Human Resource",
-  "IT",
-  "Finance",
-  "Production",
-  "Warehouse",
-  "Operations",
-  "Sales",
-  "Management",
-  "Administration",
-];
+import type { Application } from "@/types/application";
 
 /**
- * Seed data for Phase 1. Replaced by a REST payload in Phase 2 — the shape is
- * the API contract, so nothing above this file needs to change.
+ * Seed data — the catalogue as edited by commit.
+ *
+ * Read only by `services/catalog/seedStore.ts`, which is the fallback store
+ * when no database is configured. The shape is the contract every store
+ * answers with, so nothing above this file changes when the backing store does.
+ *
+ * The category list lives in `services/catalog/store.ts` as `CATEGORY_ORDER`,
+ * not here — one list, so the seed file and a database cannot disagree about
+ * which categories exist.
  */
 export const APPLICATIONS: Application[] = [
   {
@@ -32,7 +27,6 @@ export const APPLICATIONS: Application[] = [
     authProvider: null,
     launchType: "new_tab",
   },
-  /*
   {
     id: "helpdesk",
     name: "IT Helpdesk",
@@ -40,7 +34,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://helpdesk.maharasa.id/auth/login",
     icon: "LifeBuoy",
     category: "IT",
-    status: "online",
+    status: "offline",
     favorite: true,
     color: "#1976D2",
     lastOpened: null,
@@ -48,7 +42,6 @@ export const APPLICATIONS: Application[] = [
     authProvider: null,
     launchType: "new_tab",
   },
-  */
   {
     id: "tukar-faktur",
     name: "Tukar Faktur Online",
@@ -79,7 +72,6 @@ export const APPLICATIONS: Application[] = [
     authProvider: null,
     launchType: "new_tab",
   },
-  /*
   {
     id: "inventory",
     name: "Inventory",
@@ -87,7 +79,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://inventory.maharasa.id",
     icon: "Boxes",
     category: "Warehouse",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#5E35B1",
     lastOpened: null,
@@ -102,7 +94,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://purchase.maharasa.id",
     icon: "ShoppingCart",
     category: "Operations",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#3949AB",
     lastOpened: null,
@@ -117,7 +109,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://sales.maharasa.id",
     icon: "TrendingUp",
     category: "Sales",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#00ACC1",
     lastOpened: null,
@@ -132,7 +124,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://recruitment.maharasa.id",
     icon: "UserPlus",
     category: "Human Resource",
-    status: "maintenance",
+    status: "offline",
     favorite: false,
     color: "#7CB342",
     lastOpened: null,
@@ -147,7 +139,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://asset.maharasa.id",
     icon: "Package",
     category: "Administration",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#6D4C41",
     lastOpened: null,
@@ -162,7 +154,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://vendor.maharasa.id",
     icon: "Handshake",
     category: "Operations",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#8E24AA",
     lastOpened: null,
@@ -177,14 +169,14 @@ export const APPLICATIONS: Application[] = [
     url: "https://approval.maharasa.id",
     icon: "CircleCheckBig",
     category: "Management",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#2E7D32",
     lastOpened: null,
     requiresAuth: false,
     authProvider: null,
     launchType: "new_tab",
-  },*/
+  },
   {
     id: "colorplate",
     name: "Colorplate Production",
@@ -215,7 +207,6 @@ export const APPLICATIONS: Application[] = [
     authProvider: null,
     launchType: "new_tab",
   },
-  /*
   {
     id: "dms",
     name: "Document Management",
@@ -223,7 +214,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://dms.maharasa.id",
     icon: "FolderOpen",
     category: "Administration",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#546E7A",
     lastOpened: null,
@@ -238,14 +229,14 @@ export const APPLICATIONS: Application[] = [
     url: "https://feedback.maharasa.id",
     icon: "MessageSquareHeart",
     category: "Sales",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#C2185B",
     lastOpened: null,
     requiresAuth: false,
     authProvider: null,
     launchType: "new_tab",
-  },*/
+  },
   {
     id: "payroll",
     name: "Payroll Center",
@@ -261,7 +252,6 @@ export const APPLICATIONS: Application[] = [
     authProvider: null,
     launchType: "new_tab",
   },
-  /*
   {
     id: "fleet",
     name: "Fleet Management",
@@ -269,7 +259,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://fleet.maharasa.id",
     icon: "Truck",
     category: "Operations",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#455A64",
     lastOpened: null,
@@ -284,7 +274,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://qms.maharasa.id",
     icon: "ShieldCheck",
     category: "Production",
-    status: "maintenance",
+    status: "offline",
     favorite: false,
     color: "#1E88E5",
     lastOpened: null,
@@ -299,7 +289,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://learning.maharasa.id",
     icon: "GraduationCap",
     category: "Human Resource",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#8D6E63",
     lastOpened: null,
@@ -314,7 +304,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://rooms.maharasa.id",
     icon: "CalendarDays",
     category: "Administration",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#7E57C2",
     lastOpened: null,
@@ -329,7 +319,7 @@ export const APPLICATIONS: Application[] = [
     url: "https://itasset.maharasa.id",
     icon: "Laptop",
     category: "IT",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#039BE5",
     lastOpened: null,
@@ -344,12 +334,12 @@ export const APPLICATIONS: Application[] = [
     url: "https://monitoring.maharasa.id",
     icon: "Activity",
     category: "IT",
-    status: "online",
+    status: "offline",
     favorite: false,
     color: "#00BFA5",
     lastOpened: null,
     requiresAuth: false,
     authProvider: null,
     launchType: "new_tab",
-  },*/
+  },
 ];

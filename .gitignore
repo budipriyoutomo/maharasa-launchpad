@@ -8,8 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-# bun.lock is the lockfile for this project — never commit a second one.
-package-lock.json
+# package-lock.json is the lockfile for this project — never commit a second one.
+bun.lock
 yarn.lock
 pnpm-lock.yaml
 dist

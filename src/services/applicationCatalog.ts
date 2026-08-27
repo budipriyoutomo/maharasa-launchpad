@@ -1,76 +1,77 @@
-import { APPLICATIONS, CATEGORIES } from "@/data/applications";
-import type { AppCategory, Application, ApplicationQuery } from "@/types/application";
+import type { AppCategory, Application } from "@/types/application";
+
+import { chooseStore } from "./catalog/config";
+import { withSeedFallback } from "./catalog/fallback";
+import type { CatalogQuery, CatalogStore } from "./catalog/store";
 
 /**
  * Server-side catalogue reads.
  *
- * This module is the only thing that touches the seed data, and it is loaded
- * exclusively from inside the server-function handlers in
+ * This module resolves which `CatalogStore` is active and forwards to it. It is
+ * loaded exclusively from inside the server-function handlers in
  * `applicationService.ts` — never from a component, a hook, or the client
- * bundle. Keeping the selectors pure and free of `createServerFn` is what makes
- * them testable under plain Vitest, which does not run the TanStack Start
- * plugin.
+ * bundle — and it is free of `createServerFn`, which is what keeps it importable
+ * under plain Vitest.
  *
- * Phase 2 swaps the bodies here for a database or upstream API call; the
- * signatures are the contract the server functions expose.
+ * Which adapter runs is decided by `chooseStore` from the environment, so the
+ * seed file and Neon are the same code path with a different backing store.
+ * The four selectors below are the contract the server functions expose and do
+ * not change either way.
  */
 
-/**
- * Duplicate ids silently break favorites, recent history and React keys, and
- * the symptom shows up far from the cause. Checked on the server so a future
- * API or database payload gets the same guard as the seed data.
- */
-function assertUniqueIds(applications: Application[]): Application[] {
-  const seen = new Set<string>();
-  const duplicates = new Set<string>();
+export type { CatalogQuery } from "./catalog/store";
 
-  for (const app of applications) {
-    if (seen.has(app.id)) duplicates.add(app.id);
-    seen.add(app.id);
-  }
+let active: Promise<CatalogStore> | null = null;
 
-  if (duplicates.size > 0) {
-    const message = `Duplicate application id(s): ${[...duplicates].join(", ")}`;
-    if (import.meta.env.DEV) throw new Error(message);
-    console.error(message);
-  }
-
-  return applications;
+function loadSeedStore(): Promise<CatalogStore> {
+  return import("./catalog/seedStore").then(({ createSeedCatalogStore }) =>
+    createSeedCatalogStore(),
+  );
 }
 
 /**
- * Query as it arrives from the wire. `exactOptionalPropertyTypes` is on, so a
- * validated payload — where an absent key materialises as an explicit
- * `undefined` — does not satisfy `ApplicationQuery`. This tolerates both.
+ * The adapter is chosen once per server instance and cached.
+ *
+ * Adapters are pulled in with a dynamic `import()` so a store the deployment
+ * does not use is never loaded — which is also what keeps
+ * `@/data/applications` out of any bundle that does not need it.
+ *
+ * A configured database is wrapped in `withSeedFallback`, so a database outage
+ * degrades to a stale catalogue rather than to an empty grid. The reason for
+ * running on the seed file is logged once at startup: an unconfigured
+ * deployment silently serving seed data is how a missing environment variable
+ * goes unnoticed for a month.
  */
-export type CatalogQuery = {
-  [K in keyof ApplicationQuery]?: ApplicationQuery[K] | undefined;
-};
+async function createStore(): Promise<CatalogStore> {
+  const choice = chooseStore(process.env);
 
-function matches(app: Application, query: CatalogQuery): boolean {
-  const term = query.search?.trim().toLowerCase();
-  if (term) {
-    const haystack = `${app.name} ${app.description} ${app.category}`.toLowerCase();
-    if (!haystack.includes(term)) return false;
+  if (choice.kind === "seed") {
+    console.info(`Catalogue: ${choice.reason}`);
+    return loadSeedStore();
   }
-  if (query.category && app.category !== query.category) return false;
-  if (query.status && app.status !== query.status) return false;
-  return true;
+
+  const { createNeonCatalogStore } = await import("./catalog/neonStore");
+  return withSeedFallback(createNeonCatalogStore(choice.connectionString), loadSeedStore);
 }
 
-export function selectAll(): Application[] {
-  return assertUniqueIds([...APPLICATIONS]);
+function resolveStore(): Promise<CatalogStore> {
+  active ??= createStore();
+  return active;
 }
 
-export function selectById(id: string): Application | undefined {
-  return APPLICATIONS.find((app) => app.id === id);
+export async function selectAll(): Promise<Application[]> {
+  return (await resolveStore()).all();
 }
 
-export function selectQuery(query: CatalogQuery): Application[] {
-  return APPLICATIONS.filter((app) => matches(app, query));
+export async function selectById(id: string): Promise<Application | undefined> {
+  return (await resolveStore()).byId(id);
+}
+
+export async function selectQuery(query: CatalogQuery): Promise<Application[]> {
+  return (await resolveStore()).query(query);
 }
 
 /** Canonical display order for category filters and groupings. */
-export function selectCategories(): AppCategory[] {
-  return [...CATEGORIES];
+export async function selectCategories(): Promise<AppCategory[]> {
+  return (await resolveStore()).categories();
 }

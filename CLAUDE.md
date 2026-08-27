@@ -5,27 +5,32 @@ Internal application launcher for Maharasa Group. One page, every company app
 Application._
 
 Links open in a new tab and there is no authentication. Of the three Phase 2
-blocks, only the **API** one is done: the catalogue is served by the portal's
-own server through TanStack Start server functions, backed by a seed file
-rather than a database. Admin Panel and SSO are prepared for in the types but
-**not implemented** — see [Phase boundaries](#phase-boundaries).
+blocks, the **API** one is done — the catalogue is served by the portal's own
+server through TanStack Start server functions — and the **persistent store**
+sits behind a `CatalogStore` port with a Neon adapter written and a seed-file
+adapter serving until a database is provisioned. Admin Panel and SSO are
+prepared for in the types but **not implemented** — see
+[Phase boundaries](#phase-boundaries).
 
 ## Commands
 
-Lockfile is `bun.lock`, so prefer `bun`. Do not commit a second lockfile.
+Lockfile is `package-lock.json`, so use `npm`. Do not commit a second lockfile —
+`bun.lock`, `yarn.lock` and `pnpm-lock.yaml` are all gitignored, and the
+deployment picks its package manager from whichever lockfile it finds.
 
 ```sh
-bun install
-bun run dev        # vite dev server
-bun run build      # production build (nitro, cloudflare target)
-bun run preview    # serve the build
-bun run lint       # eslint
-bun run format     # prettier --write .
-bun run test       # vitest run
-bun run test:watch # vitest
+npm install
+npm run dev         # vite dev server
+npm run build       # production build (nitro; vercel in deployment)
+npm run preview     # serve the build
+npm run lint        # eslint
+npm run format      # prettier --write .
+npm run test        # vitest run
+npm run test:watch  # vitest
+npm run db:seed-sql # regenerate db/002_seed.sql from the seed file
 ```
 
-Verify changes with `bun run test`, `bun run lint` and a build, and by
+Verify changes with `npm run test`, `npm run lint` and a build, and by
 exercising the page in `dev`.
 
 ## How work is done here: test first
@@ -37,7 +42,7 @@ test before it is written is a behaviour nobody has specified.
 The loop, for every change:
 
 1. **Red.** Write the test for the behaviour you are about to add or fix. Run
-   `bun run test:watch` and _watch it fail_. A test that passes before the
+   `npm run test:watch` and _watch it fail_. A test that passes before the
    implementation exists is testing nothing — fix the test, not the code.
 2. **Green.** Write the least code that makes it pass. Do not build ahead of
    the test.
@@ -71,7 +76,8 @@ Every spec that is not about the seed data itself builds its own fixtures with
 renamed and commented out routinely, and a test that names `"helpdesk"` fails
 on a content edit while the code is fine. The one deliberate exception is
 [applicationCatalog.test.ts](src/services/applicationCatalog.test.ts), which
-tests the seed data and derives every assertion from whatever is in it.
+runs the store contract against the live catalogue and still derives every
+assertion from whatever is in it.
 
 ### What that means per layer
 
@@ -107,21 +113,22 @@ already wires TanStack Start, React, Tailwind, tsconfig paths, nitro, and the
 
 ## Layout of the code
 
-| Path                                                                     | Role                                                                                                                                                                               |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [src/routes/](src/routes/)                                               | File-based routes. `__root.tsx` is the app shell. See [src/routes/README.md](src/routes/README.md) for naming rules.                                                               |
-| [src/routeTree.gen.ts](src/routeTree.gen.ts)                             | Generated. Never edit by hand.                                                                                                                                                     |
-| [src/layouts/](src/layouts/)                                             | `PortalLayout`, `TopNav`, `AppSidebar`, `portal-context.ts`.                                                                                                                       |
-| [src/components/](src/components/)                                       | Portal-specific presentational components.                                                                                                                                         |
-| [src/components/ui/](src/components/ui/)                                 | shadcn/ui primitives. Treat as vendored — regenerate rather than hand-tune.                                                                                                        |
-| [src/hooks/](src/hooks/)                                                 | `PreferencesProvider` (owns all client preferences), `usePortalApplications`, `useCategories`, `useNotifications`, `useFavorites`, `useRecentApps`, `useTheme`, `useLocalStorage`. |
-| [src/services/applicationService.ts](src/services/applicationService.ts) | The only data-access boundary. Server functions (RPC) — runs on the server, called from anywhere.                                                                                  |
-| [src/services/applicationCatalog.ts](src/services/applicationCatalog.ts) | Server-only catalogue reads. The single place that touches the seed data.                                                                                                          |
-| [src/data/applications.ts](src/data/applications.ts)                     | Seed application list. Server-only — never reaches the browser.                                                                                                                    |
-| [src/types/application.ts](src/types/application.ts)                     | Domain types (`Application`, `AppCategory`, `AppStatus`, …).                                                                                                                       |
-| [src/utils/](src/utils/)                                                 | `launcher.ts` (single hand-off point to a target app), `greeting.ts`.                                                                                                              |
-| [src/lib/](src/lib/)                                                     | `utils.ts` (`cn`) plus Lovable error-reporting plumbing — leave the error files alone.                                                                                             |
-| [src/test/](src/test/)                                                   | Test fixtures (`factories.ts`). Never imported by application code.                                                                                                                |
+| Path                                                                     | Role                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [src/routes/](src/routes/)                                               | File-based routes. `__root.tsx` is the app shell. See [src/routes/README.md](src/routes/README.md) for naming rules.                                                                                                              |
+| [src/routeTree.gen.ts](src/routeTree.gen.ts)                             | Generated. Never edit by hand.                                                                                                                                                                                                    |
+| [src/layouts/](src/layouts/)                                             | `PortalLayout`, `TopNav`, `AppSidebar`, `portal-context.ts`.                                                                                                                                                                      |
+| [src/components/](src/components/)                                       | Portal-specific presentational components.                                                                                                                                                                                        |
+| [src/components/ui/](src/components/ui/)                                 | shadcn/ui primitives. Treat as vendored — regenerate rather than hand-tune.                                                                                                                                                       |
+| [src/hooks/](src/hooks/)                                                 | `PreferencesProvider` (owns all client preferences), `usePortalApplications`, `useCategories`, `useNotifications`, `useFavorites`, `useRecentApps`, `useTheme`, `useLocalStorage`.                                                |
+| [src/services/applicationService.ts](src/services/applicationService.ts) | The only data-access boundary. Server functions (RPC) — runs on the server, called from anywhere.                                                                                                                                 |
+| [src/services/applicationCatalog.ts](src/services/applicationCatalog.ts) | Server-only catalogue reads. Resolves the active `CatalogStore` and forwards to it.                                                                                                                                               |
+| [src/services/catalog/](src/services/catalog/)                           | `store.ts` (the `CatalogStore` port, shared filter, duplicate-id guard, `CATEGORY_ORDER`), `config.ts` (which store the environment selects), `fallback.ts`, and one adapter each: `seedStore.ts`, `sqlStore.ts`, `neonStore.ts`. |
+| [src/data/applications.ts](src/data/applications.ts)                     | Seed application list. Server-only — never reaches the browser.                                                                                                                                                                   |
+| [src/types/application.ts](src/types/application.ts)                     | Domain types (`Application`, `AppCategory`, `AppStatus`, …).                                                                                                                                                                      |
+| [src/utils/](src/utils/)                                                 | `launcher.ts` (single hand-off point to a target app), `greeting.ts`.                                                                                                                                                             |
+| [src/lib/](src/lib/)                                                     | `utils.ts` (`cn`) plus Lovable error-reporting plumbing — leave the error files alone.                                                                                                                                            |
+| [src/test/](src/test/)                                                   | Test fixtures (`factories.ts`). Never imported by application code.                                                                                                                                                               |
 
 ## Rules that matter here
 
@@ -144,14 +151,16 @@ loaded with a dynamic `import()` _inside_ each server-function handler in
 [applicationService.ts](src/services/applicationService.ts). That is what keeps
 [src/data/applications.ts](src/data/applications.ts) — and every internal
 Maharasa URL in it — out of the client bundle. Hoisting that import to the top
-of the file would ship the whole catalogue to every visitor. Never import
-`@/data/applications` from anywhere except `applicationCatalog.ts`.
+of the file would ship the whole catalogue to every visitor. The same applies
+one level down: `applicationCatalog.ts` reaches its adapter through a dynamic
+`import()` too. Never import `@/data/applications` from anywhere except
+[catalog/seedStore.ts](src/services/catalog/seedStore.ts).
 
 After changing anything in the service layer, confirm the data is still absent
 from the client build:
 
 ```sh
-bun run build
+npm run build
 grep -rl "maharasa.id" .output/public/assets/   # only the placeholder email in TopNav may match
 ```
 
@@ -161,8 +170,11 @@ schema; keep it that way.
 
 **Keep the pure logic out of `createServerFn`.** Unit tests run without the
 TanStack Start plugin, so a module that calls `createServerFn` cannot be
-imported in a spec. Selector logic lives in `applicationCatalog.ts` and is
-tested there; anything that imports `applicationService` in a test must
+imported in a spec. Filter logic lives in `catalog/store.ts` and is specified
+once by
+[catalogStoreContract.ts](src/test/catalogStoreContract.ts) — every adapter and
+the facade are held to it, so a new backing store cannot quietly change what a
+search matches. Anything that imports `applicationService` in a test must
 `vi.mock` it, as [preferences.test.tsx](src/hooks/preferences.test.tsx) does.
 
 **Never hardcode colors.** All color is oklch design tokens in
@@ -207,9 +219,17 @@ blocks, and one of them has landed:
   public REST surface; it is RPC for this frontend. If another application ever
   needs the catalogue over HTTP, that is a new decision (endpoints, auth, CORS),
   not an extension of what exists.
-- **Persistent store — not started.** The catalogue is still a seed file, edited
-  by commit. Swapping it for a database or an upstream API is a change to
-  `applicationCatalog.ts` and nothing else.
+- **Persistent store — in progress.** The code is done; the database is not
+  provisioned. `DATABASE_URL` (or `POSTGRES_URL`) selects the Neon adapter,
+  and without it the seed file is served and the reason is logged. Schema and
+  data load live in [db/](db/); `npm run db:seed-sql` regenerates the load from
+  the seed file. Remaining steps are in [TODO.md](TODO.md).
+
+  Credentials must never take a `VITE_` prefix — the Lovable preset injects
+  those into the client bundle.
+  [clientBundleSecrets.test.ts](src/test/clientBundleSecrets.test.ts) fails the
+  build if one appears, including in a test file.
+
 - **Admin Panel and SSO — not started.**
 
 `Application` already carries `requiresAuth`, `authProvider`, `auth`, `roles`,
